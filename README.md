@@ -1,1 +1,2 @@
-# HypixelSkyblockViewer
+# HypixelSkyblockMinionCalc
+
