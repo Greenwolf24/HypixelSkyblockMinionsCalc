@@ -5,6 +5,6 @@ import java.util.LinkedHashMap;
 public class Recipe
 {
 	public LinkedHashMap<String,Integer> inputs;
-	public String outitem;
-	public String outCount;
+	public String outItem;
+	public int outCount;
 }

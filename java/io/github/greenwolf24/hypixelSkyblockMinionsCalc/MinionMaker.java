@@ -5,39 +5,26 @@ This is not supposed to be the main runner
 This is only going to be a way to make the json minions in an easier way
  */
 
+import com.google.gson.Gson;
+
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Scanner;
 
 public class MinionMaker
 {
 	public static void main(String[] args)
 	{
-		//TODO make main() start item maker a separate method
-		Item baseItem = new Item();
-		System.out.print("base item id: ");
-		{
-			String temp = new Scanner(System.in).nextLine();
-			baseItem.name = temp;
-			baseItem.product_id = temp;
-		}
-		System.out.print("Merchant Sell Price of " + baseItem.name + ": ");
-		baseItem.merchantSellVal = new Scanner(System.in).nextDouble();
-		System.out.print("y or n... is this a bazaar sellable: ");
-		if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
-		{
-			baseItem.bazaar = true;
-		}
-		else
-		{
-			baseItem.bazaar = false;
-		}
-		//TODO at this point save item into a folder with gson json
+		Item baseItem = setBaseItem();
 		
 		Minion minion = new Minion();
 		minion.baseOutput = baseItem.product_id;
 		System.out.print("how many items per break: ");
 		minion.perBaseOutput = new Scanner(System.in).nextInt();
 		minion.levels = new MinionLevel[11];
-		for(int k = 0;k < minion.levels.length - 1;k++)
+		for(int k = 0;k < minion.levels.length;k++)
 		{
 			MinionLevel ml = new MinionLevel();
 			System.out.println("Please enter the stats of this minion's level " + (k + 1));
@@ -48,20 +35,21 @@ public class MinionMaker
 			minion.levels[k] = ml;
 		}
 		
-		//pseudocode time because im tired
+		//replacement pseudo-pseudocode
 		/*
-		does this minion use smelter
-		yes
-			new recipe maker
-				recipe r new recipe
-				how many of minion.baseoutput is inputed
-				r.inputs put minion.baseoutput, new scanner int
-				string tempOutID
-				what is output item?
-					same as start of main() item maker
-					//TODO make main() start item maker a separate method
-				how many out
-				r.outs put tempOutID,
+		is smelting allowed with this minion
+			yes
+				new recipe r
+				r.inputs = new linked hash map
+				r.inputs.put(minion.baseout,minion.perbaseout)
+				what is made from furnace? answer -> setBaseItem() -> r.outitem
+				how many are made? -> r.outCount
+				minion.outMods.put("autosmelt",r)
+		repeat for:
+			compact, compact and sc3000, smelt and compact, smelt and sc3000
+		
+		//TODO AFTER this is implented, make a saver for minions
+		//if saved before this is done, the minions will have to be deleted and done from scratch
 		 */
 		
 		/*
@@ -75,6 +63,53 @@ public class MinionMaker
 		same for SC3000 but
 		supcomp = formula 1
 		compacted = formula 2
+		
+		more english style
+		take time minion will be idle tid
+		(divide by time per item (usually actionTime * 2)) * itemsPerAct for total base items tbi
+		get compactor mod recipe output compname
+		how many compname is tbi / minion's compactor-mod input count for base item
+		tbi is changed to the remainder of the same divisor (minion.mod.get(compactor).input.get(minion.baseItem))
+		this gets repeated for sc3000 but with different starter points
 		 */
+	}
+	
+	private static Item setBaseItem()
+	{
+		System.out.print("Enter item product ID: ");
+		String pid = new Scanner(System.in).nextLine();
+		try
+		{
+			return new Gson().fromJson(new FileReader("data/items/" + pid + ".json"),Item.class);
+		}catch (IOException ex) {
+			//System.out.println("error 75");
+			//ex.printStackTrace();
+		}
+		
+		Item bItem = new Item();
+		bItem.name = pid;
+		bItem.product_id = pid;
+		System.out.print("Merchant Sell Price of " + bItem.name + ": ");
+		bItem.merchantSellVal = new Scanner(System.in).nextDouble();
+		System.out.print("y or n... is this a bazaar sellable: ");
+		if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
+		{
+			bItem.bazaar = true;
+		}
+		else
+		{
+			bItem.bazaar = false;
+		}
+		try
+		{
+			Writer writer = new FileWriter("data/items/" + bItem.product_id + ".json");
+			new Gson().toJson(bItem,writer);
+			writer.close();
+			System.out.println("saved");
+		}catch (IOException ex){
+			System.out.println("error 98");
+			ex.printStackTrace();
+		}
+		return bItem;
 	}
 }
