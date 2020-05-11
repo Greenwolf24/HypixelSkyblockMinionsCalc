@@ -1,5 +1,6 @@
 package io.github.greenwolf24.hypixelSkyblockMinionsCalc;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 public class Minion
@@ -8,4 +9,5 @@ public class Minion
 	public int perBaseOutput;
 	public MinionLevel[] levels;
 	public LinkedHashMap<String,Recipe> modOutput;
+	public LinkedHashMap<String,String> modRequirements;
 }

@@ -17,7 +17,7 @@ public class MinionMaker
 {
 	public static void main(String[] args)
 	{
-		Item baseItem = setBaseItem();
+		Item baseItem = getOrMakeItem();
 		
 		Minion minion = new Minion();
 		minion.baseOutput = baseItem.product_id;
@@ -35,22 +35,62 @@ public class MinionMaker
 			minion.levels[k] = ml;
 		}
 		
-		//replacement pseudo-pseudocode
+		//boolean furnace = false;
+		System.out.print("Can this minion use an Auto Smelter (y or n)?: ");
+		if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
+		{
+			Recipe r = new Recipe();
+			r.inputs.put(minion.baseOutput,minion.perBaseOutput);
+			System.out.print("What does the autosmelter produce?");
+			Item i = getOrMakeItem();
+			r.outItem = i.product_id;
+			System.out.print("How many does the autosmelter make?: ");
+			r.outCount = new Scanner(System.in).nextInt();
+			minion.modOutput.put("Auto Smelter",r);
+		}
+		
+		//String[] mods = {"Compacter","Super Compacter 3000"};
+		for(String mod : new String[]{"Compacter","Super Compacter 3000"})
+		{
+			System.out.print("Can this minion use a " + mod + "(y/n)?:");
+			if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
+			{
+				Recipe r = new Recipe();
+				String modRecItem = minion.baseOutput;
+				if(minion.modOutput.containsKey("Auto Smelter"))
+				{
+					System.out.print("does the " + mod + " need the furnace's output?: ");
+					if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
+					{
+						minion.modRequirements.put(mod,"Auto Smelter");
+						modRecItem = minion.modOutput.get("Auto Smelter").outItem;
+						//r.inputs.put(furnOut.outItem);
+					}
+				}
+				System.out.print("how many items does the " + mod + " take?: ");
+				r.inputs.put(modRecItem,new Scanner(System.in).nextInt());
+				System.out.print("what does the " + mod + " make");
+				r.outItem = getOrMakeItem().product_id;
+				System.out.println("and how many?: ");
+				r.outCount = new Scanner(System.in).nextInt();
+				minion.modOutput.put(mod,r);
+			}
+		}
+		
+		//Improved pseudocode
 		/*
-		is smelting allowed with this minion
-			yes
-				new recipe r
-				r.inputs = new linked hash map
-				r.inputs.put(minion.baseout,minion.perbaseout)
-				what is made from furnace? answer -> setBaseItem() -> r.outitem
-				how many are made? -> r.outCount
-				minion.outMods.put("autosmelt",r)
-		repeat for:
-			compact, compact and sc3000, smelt and compact, smelt and sc3000
+		if
+			minion.modreqs.containsKey(compacter) or containsKey(super compacter 3000)
+				comp + super comp impossible
+		if user input comp and sc3000 possible
+			if minion.modoutput.containKey(compacter) and not containKey(super)
+				minion.modReq.put(super compacter,compacter)
+			//TODO determine a method of recipe storage for multiple action modifications
+				iron -> enc. iron -> enc. iron block
+		 */
 		
 		//TODO AFTER this is implented, make a saver for minions
 		//if saved before this is done, the minions will have to be deleted and done from scratch
-		 */
 		
 		/*
 		pseudocode of given seconds item calc
@@ -74,7 +114,7 @@ public class MinionMaker
 		 */
 	}
 	
-	private static Item setBaseItem()
+	private static Item getOrMakeItem()
 	{
 		System.out.print("Enter item product ID: ");
 		String pid = new Scanner(System.in).nextLine();
