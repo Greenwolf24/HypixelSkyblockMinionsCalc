@@ -8,6 +8,5 @@ public class Minion
 	public String baseOutput;
 	public int perBaseOutput;
 	public MinionLevel[] levels;
-	public LinkedHashMap<String,Recipe> modOutput;
-	public LinkedHashMap<String,String> modRequirements;
+	public LinkedHashMap<String,ArrayList<Recipe>> modOutputSteps;
 }

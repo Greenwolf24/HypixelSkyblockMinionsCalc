@@ -11,6 +11,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class MinionMaker
@@ -46,7 +47,9 @@ public class MinionMaker
 			r.outItem = i.product_id;
 			System.out.print("How many does the autosmelter make?: ");
 			r.outCount = new Scanner(System.in).nextInt();
-			minion.modOutput.put("Auto Smelter",r);
+			ArrayList<Recipe> steps = new ArrayList<>();
+			steps.add(r);
+			minion.modOutputSteps.put("Auto Smelter",steps);
 		}
 		
 		//String[] mods = {"Compacter","Super Compacter 3000"};
@@ -57,13 +60,16 @@ public class MinionMaker
 			{
 				Recipe r = new Recipe();
 				String modRecItem = minion.baseOutput;
-				if(minion.modOutput.containsKey("Auto Smelter"))
+				ArrayList<Recipe> steps = new ArrayList<>();
+				if(minion.modOutputSteps.containsKey("AutoSmelter"))
 				{
 					System.out.print("does the " + mod + " need the furnace's output?: ");
 					if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
 					{
-						minion.modRequirements.put(mod,"Auto Smelter");
-						modRecItem = minion.modOutput.get("Auto Smelter").outItem;
+						//minion.modRequirements.put(mod,"Auto Smelter");
+						mod = "AutoSmelt_" + mod;
+						modRecItem = minion.modOutputSteps.get("Auto Smelter").get(0).outItem;
+						steps.add(minion.modOutputSteps.get("AutoSmelter").get(0));
 						//r.inputs.put(furnOut.outItem);
 					}
 				}
@@ -73,20 +79,31 @@ public class MinionMaker
 				r.outItem = getOrMakeItem().product_id;
 				System.out.println("and how many?: ");
 				r.outCount = new Scanner(System.in).nextInt();
-				minion.modOutput.put(mod,r);
+				steps.add(r);
+				minion.modOutputSteps.put(mod,steps);
 			}
 		}
 		
-		//Improved pseudocode
+		//Improved pseudocode 3
 		/*
-		if
-			minion.modreqs.containsKey(compacter) or containsKey(super compacter 3000)
-				comp + super comp impossible
-		if user input comp and sc3000 possible
-			if minion.modoutput.containKey(compacter) and not containKey(super)
-				minion.modReq.put(super compacter,compacter)
-			//TODO determine a method of recipe storage for multiple action modifications
-				iron -> enc. iron -> enc. iron block
+			arraylist<recipe> steps
+			recipe r
+			if !minion.modOutputSteps.keyset.includes("autosmelter_compacter") and not include "compactor"
+					// if true, comp_sc3000 not possible, this step skip
+				if includes "compactor"
+					is compactor required
+					yes
+						steps.add minion.modOutputSteps.get"compactor"
+						
+						
+						
+						
+						
+						
+			newStepsMethod
+			how many steps
+			for int 0 > stepscount
+			
 		 */
 		
 		//TODO AFTER this is implented, make a saver for minions
@@ -95,6 +112,8 @@ public class MinionMaker
 		/*
 		pseudocode of given seconds item calc
 		THIS IS NOT THE CLASS THIS WILL BE IMPLEMENTED INTO
+		THIS IS OUTDATED WITH modOutputSteps UPDATE
+		But I'm keeping it here in case the math is still needed later
 		time in seconds tis
 		tis / time per item = total base items tbi
 		compactedname = minion.mod.get(compact).outname
