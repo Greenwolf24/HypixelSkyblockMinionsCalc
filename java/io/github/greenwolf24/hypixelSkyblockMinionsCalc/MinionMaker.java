@@ -12,6 +12,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Scanner;
 
 public class MinionMaker
@@ -26,6 +27,7 @@ public class MinionMaker
 		minion.baseOutput = getOrMakeItem().product_id;
 		System.out.print("how many items per break: ");
 		minion.perBaseOutput = new Scanner(System.in).nextInt();
+		minion.levels = new MinionLevel[11];
 		for(int k = 0;k < minion.levels.length;k++)
 		{
 			MinionLevel ml = new MinionLevel();
@@ -36,6 +38,8 @@ public class MinionMaker
 			ml.capacity = new Scanner(System.in).nextInt();
 			minion.levels[k] = ml;
 		}
+		
+		minion.modOutputSteps = new LinkedHashMap<>();
 		
 		System.out.print("Can this minion use AUTOSMELTER (y or n)?: ");
 		if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
@@ -74,7 +78,7 @@ public class MinionMaker
 							System.out.print("How many steps are involved?");
 							int s = new Scanner(System.in).nextInt();
 							System.out.println("please create the recipe steps for " + mod);
-							minion.modOutputSteps.put("AUTOSMELTER_" + mod,makeSteps(s));
+							minion.modOutputSteps.put(mod,makeSteps(s));
 						}
 					}
 				}
@@ -83,20 +87,18 @@ public class MinionMaker
 					System.out.print("How many steps are involved?");
 					int s = new Scanner(System.in).nextInt();
 					System.out.println("please create the recipe steps for " + mod);
-					minion.modOutputSteps.put("AUTOSMELTER_" + mod,makeSteps(s));
+					minion.modOutputSteps.put(mod,makeSteps(s));
 				}
 			}
-			
-			System.out.print("can COMPACTER_SC3000 be used with this minion");
-			if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
-			{
-				System.out.print("How many steps are involved?");
-				int s = new Scanner(System.in).nextInt();
-				System.out.println("please create the recipe steps for " + mod);
-				minion.modOutputSteps.put("AUTOSMELTER_SC3000",makeSteps(s));
-			}
-			
-			
+		}
+		
+		System.out.print("can COMPACTER_SC3000 be used with this minion");
+		if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
+		{
+			System.out.print("How many steps are involved?");
+			int s = new Scanner(System.in).nextInt();
+			System.out.println("please create the recipe steps for COMPACTER_SC3000");
+			minion.modOutputSteps.put("COMPACTER_SC3000",makeSteps(s));
 		}
 		
 		saveMinion(minion);
@@ -131,15 +133,16 @@ public class MinionMaker
 		for(int k = 0;k < num;k++)
 		{
 			Recipe recipe = new Recipe();
+			recipe.inputs = new LinkedHashMap<>();
 			//recipe.inputs.put(minion.baseOutput,minion.perBaseOutput);
 			System.out.print("What is step " + (k + 1) + "'s input item");
 			String input = getOrMakeItem().product_id;
 			System.out.print("how many does it take:");
 			recipe.inputs.put(input,new Scanner(System.in).nextInt());
-			System.out.print("What does the autosmelter produce?");
+			System.out.print("What does step " + (k + 1) + " produce?: ");
 			//Item i = getOrMakeItem();
 			recipe.outItem = getOrMakeItem().product_id;
-			System.out.print("How many does the autosmelter make?: ");
+			System.out.print("How many does this step make?: ");
 			recipe.outCount = new Scanner(System.in).nextInt();
 			steps.add(recipe);
 		}
