@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 
 public class Minion
 {
+	public String name;
 	public String baseOutput;
 	public int perBaseOutput;
 	public MinionLevel[] levels;

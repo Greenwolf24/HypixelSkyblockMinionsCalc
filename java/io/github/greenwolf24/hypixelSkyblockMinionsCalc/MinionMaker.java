@@ -18,13 +18,14 @@ public class MinionMaker
 {
 	public static void main(String[] args)
 	{
-		Item baseItem = getOrMakeItem();
-		
 		Minion minion = new Minion();
-		minion.baseOutput = baseItem.product_id;
+		System.out.print("what is the name of the minion (____ Minion): ");
+		minion.name = new Scanner(System.in).nextLine();
+		System.out.println("What is this minion's base item?");
+		//Item baseItem = getOrMakeItem();
+		minion.baseOutput = getOrMakeItem().product_id;
 		System.out.print("how many items per break: ");
 		minion.perBaseOutput = new Scanner(System.in).nextInt();
-		minion.levels = new MinionLevel[11];
 		for(int k = 0;k < minion.levels.length;k++)
 		{
 			MinionLevel ml = new MinionLevel();
@@ -36,78 +37,69 @@ public class MinionMaker
 			minion.levels[k] = ml;
 		}
 		
-		//boolean furnace = false;
-		System.out.print("Can this minion use an Auto Smelter (y or n)?: ");
+		System.out.print("Can this minion use AUTOSMELTER (y or n)?: ");
 		if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
 		{
-			Recipe r = new Recipe();
-			r.inputs.put(minion.baseOutput,minion.perBaseOutput);
-			System.out.print("What does the autosmelter produce?");
-			Item i = getOrMakeItem();
-			r.outItem = i.product_id;
-			System.out.print("How many does the autosmelter make?: ");
-			r.outCount = new Scanner(System.in).nextInt();
-			ArrayList<Recipe> steps = new ArrayList<>();
-			steps.add(r);
-			minion.modOutputSteps.put("Auto Smelter",steps);
+			System.out.println("please create the recipe steps for AUTOSMELTER");
+			minion.modOutputSteps.put("AUTOSMELTER",makeSteps(1));
 		}
 		
-		//String[] mods = {"Compacter","Super Compacter 3000"};
-		for(String mod : new String[]{"Compacter","Super Compacter 3000"})
+		for(String mod : new String[]{"COMPACTER","SC3000"})
 		{
-			System.out.print("Can this minion use a " + mod + "(y/n)?:");
+			System.out.print("can this minion use a " + mod + " (y/n)?:");
 			if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
 			{
-				Recipe r = new Recipe();
-				String modRecItem = minion.baseOutput;
-				ArrayList<Recipe> steps = new ArrayList<>();
-				if(minion.modOutputSteps.containsKey("AutoSmelter"))
+				if(minion.modOutputSteps.containsKey("AUTOSMELTER"))
 				{
-					System.out.print("does the " + mod + " need the furnace's output?: ");
+					System.out.print("does the " + mod + " require AUTOSMELTER?: ");
 					if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
 					{
-						//minion.modRequirements.put(mod,"Auto Smelter");
-						mod = "AutoSmelt_" + mod;
-						modRecItem = minion.modOutputSteps.get("Auto Smelter").get(0).outItem;
-						steps.add(minion.modOutputSteps.get("AutoSmelter").get(0));
-						//r.inputs.put(furnOut.outItem);
+						System.out.print("How many steps are involved?");
+						int s = new Scanner(System.in).nextInt();
+						System.out.println("please create the recipe steps for AUTOSMELTER_" + mod);
+						minion.modOutputSteps.put("AUTOSMELTER_" + mod,makeSteps(s));
+					}
+					else
+					{
+						System.out.print("can the " + mod + " be used with AUTOSMELTER?: ");
+						if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
+						{
+							System.out.print("How many steps are involved?");
+							int s = new Scanner(System.in).nextInt();
+							System.out.println("please create the recipe steps for AUTOSMELTER_" + mod);
+							minion.modOutputSteps.put("AUTOSMELTER_" + mod,makeSteps(s));
+						}
+						else
+						{
+							System.out.print("How many steps are involved?");
+							int s = new Scanner(System.in).nextInt();
+							System.out.println("please create the recipe steps for " + mod);
+							minion.modOutputSteps.put("AUTOSMELTER_" + mod,makeSteps(s));
+						}
 					}
 				}
-				System.out.print("how many items does the " + mod + " take?: ");
-				r.inputs.put(modRecItem,new Scanner(System.in).nextInt());
-				System.out.print("what does the " + mod + " make");
-				r.outItem = getOrMakeItem().product_id;
-				System.out.println("and how many?: ");
-				r.outCount = new Scanner(System.in).nextInt();
-				steps.add(r);
-				minion.modOutputSteps.put(mod,steps);
+				else
+				{
+					System.out.print("How many steps are involved?");
+					int s = new Scanner(System.in).nextInt();
+					System.out.println("please create the recipe steps for " + mod);
+					minion.modOutputSteps.put("AUTOSMELTER_" + mod,makeSteps(s));
+				}
 			}
+			
+			System.out.print("can COMPACTER_SC3000 be used with this minion");
+			if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
+			{
+				System.out.print("How many steps are involved?");
+				int s = new Scanner(System.in).nextInt();
+				System.out.println("please create the recipe steps for " + mod);
+				minion.modOutputSteps.put("AUTOSMELTER_SC3000",makeSteps(s));
+			}
+			
+			
 		}
 		
-		//Improved pseudocode 3
-		/*
-			arraylist<recipe> steps
-			recipe r
-			if !minion.modOutputSteps.keyset.includes("autosmelter_compacter") and not include "compactor"
-					// if true, comp_sc3000 not possible, this step skip
-				if includes "compactor"
-					is compactor required
-					yes
-						steps.add minion.modOutputSteps.get"compactor"
-						
-						
-						
-						
-						
-						
-			newStepsMethod
-			how many steps
-			for int 0 > stepscount
-			
-		 */
-		
-		//TODO AFTER this is implented, make a saver for minions
-		//if saved before this is done, the minions will have to be deleted and done from scratch
+		saveMinion(minion);
 		
 		/*
 		pseudocode of given seconds item calc
@@ -131,6 +123,41 @@ public class MinionMaker
 		tbi is changed to the remainder of the same divisor (minion.mod.get(compactor).input.get(minion.baseItem))
 		this gets repeated for sc3000 but with different starter points
 		 */
+	}
+	
+	private static ArrayList<Recipe> makeSteps(int num)
+	{
+		ArrayList<Recipe> steps = new ArrayList<>();
+		for(int k = 0;k < num;k++)
+		{
+			Recipe recipe = new Recipe();
+			//recipe.inputs.put(minion.baseOutput,minion.perBaseOutput);
+			System.out.print("What is step " + (k + 1) + "'s input item");
+			String input = getOrMakeItem().product_id;
+			System.out.print("how many does it take:");
+			recipe.inputs.put(input,new Scanner(System.in).nextInt());
+			System.out.print("What does the autosmelter produce?");
+			//Item i = getOrMakeItem();
+			recipe.outItem = getOrMakeItem().product_id;
+			System.out.print("How many does the autosmelter make?: ");
+			recipe.outCount = new Scanner(System.in).nextInt();
+			steps.add(recipe);
+		}
+		return steps;
+	}
+	
+	private static void saveMinion(Minion m)
+	{
+		try
+		{
+			Writer writer = new FileWriter("data/minions/" + m.name + ".json");
+			new Gson().toJson(m,writer);
+			writer.close();
+			System.out.println("saved");
+		}catch (IOException ex){
+			System.out.println("error 98");
+			ex.printStackTrace();
+		}
 	}
 	
 	private static Item getOrMakeItem()
