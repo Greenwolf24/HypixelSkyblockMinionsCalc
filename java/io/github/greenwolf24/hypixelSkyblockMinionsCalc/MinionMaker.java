@@ -28,17 +28,33 @@ public class MinionMaker
 		System.out.print("how many items per break: ");
 		minion.perBaseOutput = new Scanner(System.in).nextInt();
 		minion.levels = new MinionLevel[11];
-		for(int k = 0;k < minion.levels.length;k++)
+		System.out.print("Does this minion use the typical storage level amounts?: ");
+		if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
 		{
-			MinionLevel ml = new MinionLevel();
-			System.out.println("Please enter the stats of this minion's level " + (k + 1));
-			System.out.print("time per item: ");
-			ml.timeBetween = new Scanner(System.in).nextDouble();
-			System.out.print("item capacity: ");
-			ml.capacity = new Scanner(System.in).nextInt();
-			minion.levels[k] = ml;
+			int[] sizes = new int[]{64,192,192,384,384,576,576,768,768,960,960};
+			for(int k = 0;k < minion.levels.length;k++)
+			{
+				MinionLevel ml = new MinionLevel();
+				System.out.println("Please enter the stats of this minion's level " + (k + 1));
+				System.out.print("time per item: ");
+				ml.timeBetween = new Scanner(System.in).nextDouble();
+				ml.capacity = sizes[k];
+				minion.levels[k] = ml;
+			}
 		}
-		
+		else
+		{
+			for (int k = 0;k < minion.levels.length;k++)
+			{
+				MinionLevel ml = new MinionLevel();
+				System.out.println("Please enter the stats of this minion's level " + (k + 1));
+				System.out.print("time per item: ");
+				ml.timeBetween = new Scanner(System.in).nextDouble();
+				System.out.print("item capacity: ");
+				ml.capacity = new Scanner(System.in).nextInt();
+				minion.levels[k] = ml;
+			}
+		}
 		minion.modOutputSteps = new LinkedHashMap<>();
 		
 		System.out.print("Can this minion use AUTOSMELTER (y or n)?: ");
@@ -181,14 +197,8 @@ public class MinionMaker
 		System.out.print("Merchant Sell Price of " + bItem.name + ": ");
 		bItem.merchantSellVal = new Scanner(System.in).nextDouble();
 		System.out.print("y or n... is this a bazaar sellable: ");
-		if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
-		{
-			bItem.bazaar = true;
-		}
-		else
-		{
-			bItem.bazaar = false;
-		}
+		bItem.bazaar = new Scanner(System.in).nextLine().toLowerCase().equals("y");
+		
 		try
 		{
 			Writer writer = new FileWriter("data/items/" + bItem.product_id + ".json");
@@ -196,7 +206,7 @@ public class MinionMaker
 			writer.close();
 			System.out.println("saved");
 		}catch (IOException ex){
-			System.out.println("error 98");
+			System.out.println("error 193");
 			ex.printStackTrace();
 		}
 		return bItem;
