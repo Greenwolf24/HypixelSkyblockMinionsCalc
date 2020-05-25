@@ -6,6 +6,7 @@ This is only going to be a way to make the json minions in an easier way
  */
 
 import com.google.gson.Gson;
+import sun.awt.image.ImageWatched;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -19,11 +20,17 @@ public class MinionMaker
 		Minion minion = new Minion();
 		System.out.print("what is the name of the minion (____ Minion): ");
 		minion.name = new Scanner(System.in).nextLine();
-		System.out.println("What is this minion's base item?");
-		//Item baseItem = getOrMakeItem();
-		minion.baseOutput = getOrMakeItem().product_id;
-		System.out.print("how many items per break: ");
-		minion.perBaseOutput = new Scanner(System.in).nextInt();
+		minion.baseOutputs = new LinkedHashMap<>();
+		System.out.print("how many items does this minion make: ");
+		for (int k = 0; k < new Scanner(System.in).nextInt(); k++)
+		{
+			
+			System.out.println("What is this minion's base item?");
+			//Item baseItem = getOrMakeItem();
+			String name = getOrMakeItem().name;
+			System.out.print("how many items per break (or decimal for rate of drop): ");
+			minion.baseOutputs.put(name,new Scanner(System.in).nextDouble());
+		}
 		minion.levels = new MinionLevel[11];
 		System.out.print("Does this minion use the typical storage level amounts?: ");
 		if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
@@ -179,6 +186,8 @@ public class MinionMaker
 			ArrayList<String> matches = new ArrayList<>();
 			for(String file : files)
 			{
+				//checks if the file is a . file after the recipe number.
+				// Ex mushroomblock001.json wont be found with mushroom001.json
 				if(file.indexOf(fileBase) == 0 && file.substring(fileBase.length() + 3,fileBase.length() + 4).equals("."))
 				{
 					 matches.add(file);
