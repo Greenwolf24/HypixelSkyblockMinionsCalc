@@ -7,10 +7,7 @@ This is only going to be a way to make the json minions in an easier way
 
 import com.google.gson.Gson;
 
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Scanner;
@@ -143,24 +140,12 @@ public class MinionMaker
 		 */
 	}
 	
-	private static ArrayList<Recipe> makeSteps(int num)
+	private static ArrayList<String> makeSteps(int num)
 	{
-		ArrayList<Recipe> steps = new ArrayList<>();
+		ArrayList<String> steps = new ArrayList<>();
 		for(int k = 0;k < num;k++)
 		{
-			Recipe recipe = new Recipe();
-			recipe.inputs = new LinkedHashMap<>();
-			//recipe.inputs.put(minion.baseOutput,minion.perBaseOutput);
-			System.out.print("What is step " + (k + 1) + "'s input item");
-			String input = getOrMakeItem().product_id;
-			System.out.print("how many does it take:");
-			recipe.inputs.put(input,new Scanner(System.in).nextInt());
-			System.out.print("What does step " + (k + 1) + " produce?: ");
-			//Item i = getOrMakeItem();
-			recipe.outItem = getOrMakeItem().product_id;
-			System.out.print("How many does this step make?: ");
-			recipe.outCount = new Scanner(System.in).nextInt();
-			steps.add(recipe);
+			steps.add(getOrMakeRecipeName());
 		}
 		return steps;
 	}
@@ -179,21 +164,106 @@ public class MinionMaker
 		}
 	}
 	
-	private static Item getOrMakeItem()
+	private static String getOrMakeRecipeName()
 	{
-		System.out.print("Enter item product ID: ");
-		String pid = new Scanner(System.in).nextLine();
+		System.out.print("What is the recipe output item");
+		String outItem = getOrMakeItem().name;
+		System.out.print("how many does this recipe make");
+		int outAmount = new Scanner(System.in).nextInt();
+		String fileBase = outItem + "x" + outAmount;
+		int fileBaseNum = 0;
 		try
 		{
-			return new Gson().fromJson(new FileReader("data/items/" + pid + ".json"),Item.class);
+			File fold = new File("data/recipes/");
+			String[] files = fold.list();
+			ArrayList<String> matches = new ArrayList<>();
+			for(String file : files)
+			{
+				if(file.indexOf(fileBase) == 0 && file.substring(fileBase.length() + 3,fileBase.length() + 4).equals("."))
+				{
+					 matches.add(file);
+				}
+			}
+			fileBaseNum = matches.size() + 1;
+			for(String file : matches)
+			{
+				try
+				{
+					Recipe temp = new Gson().fromJson(new FileReader("data/recipes/" + file + ".json"), Recipe.class);
+					System.out.println("are the inputs " + temp.inputs);
+					if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
+					{
+						return file;
+					}
+				}catch (FileNotFoundException ex){}
+			}
+		}catch (NullPointerException ex) {}
+		
+		Recipe recipe = new Recipe();
+		recipe.inputs = new LinkedHashMap<>();
+		//recipe.inputs.put(minion.baseOutput,minion.perBaseOutput);
+		System.out.print("how many different inputs: ");
+		for(int k = 0;k < new Scanner(System.in).nextInt();k++)
+		{
+			System.out.print("What is input item");
+			String input = getOrMakeItem().name;
+			System.out.print("how many " + input + " does it take:");
+			recipe.inputs.put(input, new Scanner(System.in).nextInt());
+		}
+		recipe.outItem = outItem;
+		recipe.outCount = outAmount;
+		String finalSaveName = outItem + "x" + outAmount + formatRecNum(fileBaseNum);
+		try
+		{
+			
+			Writer writer = new FileWriter("data/recipe/" + finalSaveName + ".json");
+			new Gson().toJson(recipe,writer);
+			writer.close();
+			System.out.println("saved");
+		}
+		catch (IOException ex){}
+		return finalSaveName;
+	}
+	
+	private static Recipe recipeNameToRecipe(String name)
+	{
+		try
+		{
+			return new Gson().fromJson(new FileReader("data/recipes/" + name + ".json"),Recipe.class);
+		}catch (Exception ex)
+		{
+			System.err.println("An error occured while fetching that file. Rerouting you to the getOrMakeRecipeName now");
+			return recipeNameToRecipe(getOrMakeRecipeName());
+		}
+	}
+	
+	private static String formatRecNum(int i)
+	{
+		String s = Integer.toString(i);
+		int sl = s.length();
+		for(int k = 0;k < 3 - sl;k++)
+		{
+			s = "0" + s;
+		}
+		return s;
+	}
+	
+	private static Item getOrMakeItem()
+	{
+		System.out.print("Enter item name: ");
+		String name = new Scanner(System.in).nextLine();
+		try
+		{
+			return new Gson().fromJson(new FileReader("data/items/" + name + ".json"),Item.class);
 		}catch (IOException ex) {
 			//System.out.println("error 75");
 			//ex.printStackTrace();
 		}
 		
 		Item bItem = new Item();
-		bItem.name = pid;
-		bItem.product_id = pid;
+		bItem.name = name;
+		System.out.print("What is item's ProductID");
+		bItem.product_id = new Scanner(System.in).nextLine();
 		System.out.print("Merchant Sell Price of " + bItem.name + ": ");
 		bItem.merchantSellVal = new Scanner(System.in).nextDouble();
 		System.out.print("y or n... is this a bazaar sellable: ");
@@ -201,7 +271,7 @@ public class MinionMaker
 		
 		try
 		{
-			Writer writer = new FileWriter("data/items/" + bItem.product_id + ".json");
+			Writer writer = new FileWriter("data/items/" + bItem.name + ".json");
 			new Gson().toJson(bItem,writer);
 			writer.close();
 			System.out.println("saved");
