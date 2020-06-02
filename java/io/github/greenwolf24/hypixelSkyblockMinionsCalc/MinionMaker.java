@@ -6,7 +6,6 @@ This is only going to be a way to make the json minions in an easier way
  */
 
 import com.google.gson.Gson;
-import sun.awt.image.ImageWatched;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -22,9 +21,9 @@ public class MinionMaker
 		minion.name = new Scanner(System.in).nextLine();
 		minion.baseOutputs = new LinkedHashMap<>();
 		System.out.print("how many items does this minion make: ");
-		for (int k = 0; k < new Scanner(System.in).nextInt(); k++)
+		int minionBaseOutCount = new Scanner(System.in).nextInt();
+		for (int k = 0; k < minionBaseOutCount; k++)
 		{
-			
 			System.out.println("What is this minion's base item?");
 			//Item baseItem = getOrMakeItem();
 			String name = getOrMakeItem().name;
@@ -182,9 +181,9 @@ public class MinionMaker
 	{
 		System.out.print("What is the recipe output item");
 		String outItem = getOrMakeItem().name;
-		System.out.print("how many does this recipe make");
+		System.out.print("how many does this recipe make: ");
 		int outAmount = new Scanner(System.in).nextInt();
-		String fileBase = outItem + "x" + outAmount;
+		String fileBase = outItem + "x" + outAmount + "_";
 		int fileBaseNum = 0;
 		try
 		{
@@ -193,11 +192,15 @@ public class MinionMaker
 			ArrayList<String> matches = new ArrayList<>();
 			for(String file : files)
 			{
+				//System.out.println("196 FILE " + file);
+				//System.out.println("197 index " + file.indexOf(fileBase));
+				//System.out.println("198 subst " + file.substring(fileBase.length() + 3,fileBase.length() + 4));
+				//System.out.println("199 =. " + file.substring(fileBase.length() + 3,fileBase.length() + 4).equals("."));
 				//checks if the file is a . file after the recipe number.
-				// Ex mushroomblock001.json wont be found with mushroom001.json
+				// Ex mushroomblock1_001.json wont be found with mushroom1_001.json
 				if(file.indexOf(fileBase) == 0 && file.substring(fileBase.length() + 3,fileBase.length() + 4).equals("."))
 				{
-					 matches.add(file);
+					matches.add(file);
 				}
 			}
 			fileBaseNum = matches.size() + 1;
@@ -205,11 +208,13 @@ public class MinionMaker
 			{
 				try
 				{
-					Recipe temp = new Gson().fromJson(new FileReader("data/recipes/" + file + ".json"), Recipe.class);
-					System.out.println("are the inputs " + temp.inputs);
+					System.out.println(file);
+					Recipe temp = new Gson().fromJson(new FileReader("data/recipes/" + file), Recipe.class);
+					System.out.print("are the inputs " + temp.inputs + ": ");
 					if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
 					{
-						return file;
+						String retRecipeName = file.replaceAll(".json","");
+						return retRecipeName;
 					}
 				}catch (FileNotFoundException ex){}
 			}
@@ -219,7 +224,8 @@ public class MinionMaker
 		recipe.inputs = new LinkedHashMap<>();
 		//recipe.inputs.put(minion.baseOutput,minion.perBaseOutput);
 		System.out.print("how many different inputs: ");
-		for(int k = 0;k < new Scanner(System.in).nextInt();k++)
+		int recInputCount = new Scanner(System.in).nextInt();
+		for(int k = 0;k < recInputCount;k++)
 		{
 			System.out.print("What is input item");
 			String input = getOrMakeItem().name;
@@ -228,11 +234,11 @@ public class MinionMaker
 		}
 		recipe.outItem = outItem;
 		recipe.outCount = outAmount;
-		String finalSaveName = outItem + "x" + outAmount + formatRecNum(fileBaseNum);
+		String finalSaveName = outItem + "x" + outAmount + "_" + formatRecNum(fileBaseNum);
 		try
 		{
 			
-			Writer writer = new FileWriter("data/recipe/" + finalSaveName + ".json");
+			Writer writer = new FileWriter("data/recipes/" + finalSaveName + ".json");
 			new Gson().toJson(recipe,writer);
 			writer.close();
 			System.out.println("saved");
@@ -248,7 +254,7 @@ public class MinionMaker
 			return new Gson().fromJson(new FileReader("data/recipes/" + name + ".json"),Recipe.class);
 		}catch (Exception ex)
 		{
-			System.err.println("An error occured while fetching that file. Rerouting you to the getOrMakeRecipeName now");
+			System.err.println("An error occurred while fetching that file. Rerouting you to the getOrMakeRecipeName now");
 			return recipeNameToRecipe(getOrMakeRecipeName());
 		}
 	}
