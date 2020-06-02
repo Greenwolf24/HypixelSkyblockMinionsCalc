@@ -22,9 +22,16 @@ public class MinionMaker
 		Minion minion = new Minion();
 		System.out.print("what is the name of the minion (____ Minion): ");
 		minion.name = new Scanner(System.in).nextLine();
-		System.out.println("What is this minion's base item?");
+		System.out.print("how many base items does this minion produce: ");
+		minion.baseOutput = new ArrayList<>();
+		int minionItemOutCount = new Scanner(System.in).nextInt();
+		for(int k = 0;k < minionItemOutCount;k++)
+		{
+			minion.baseOutput.add(getOrMakeItem().name);
+		}
+		//System.out.println("What is this minion's base item?");
 		//Item baseItem = getOrMakeItem();
-		minion.baseOutput = getOrMakeItem().product_id;
+		//minion.baseOutput = getOrMakeItem().product_id;
 		System.out.print("how many items per break: ");
 		minion.perBaseOutput = new Scanner(System.in).nextInt();
 		minion.levels = new MinionLevel[11];
@@ -34,12 +41,19 @@ public class MinionMaker
 			int[] sizes = new int[]{64,192,192,384,384,576,576,768,768,960,960};
 			for(int k = 0;k < minion.levels.length;k++)
 			{
-				MinionLevel ml = new MinionLevel();
-				System.out.println("Please enter the stats of this minion's level " + (k + 1));
-				System.out.print("time per item: ");
-				ml.timeBetween = new Scanner(System.in).nextDouble();
-				ml.capacity = sizes[k];
-				minion.levels[k] = ml;
+				if((k + 1) % 2 == 0)
+				{
+					minion.levels[k] = minion.levels[k - 1];
+				}
+				else
+				{
+					MinionLevel ml = new MinionLevel();
+					System.out.println("Please enter the stats of this minion's level " + (k + 1) + " and " + (k + 2));
+					System.out.print("time per item: ");
+					ml.timeBetween = new Scanner(System.in).nextDouble();
+					ml.capacity = sizes[k];
+					minion.levels[k] = ml;
+				}
 			}
 		}
 		else
@@ -108,12 +122,12 @@ public class MinionMaker
 			}
 		}
 		
-		System.out.print("can COMPACTER_SC3000 be used with this minion");
+		System.out.print("can COMPACTER_SC3000 be used with this minion?: ");
 		if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
 		{
 			System.out.print("How many steps are involved?");
 			int s = new Scanner(System.in).nextInt();
-			System.out.println("please create the recipe steps for COMPACTER_SC3000");
+			System.out.println("please create the recipe steps for COMPACTER_SC3000. ");
 			minion.modOutputSteps.put("COMPACTER_SC3000",makeSteps(s));
 		}
 		
@@ -151,13 +165,13 @@ public class MinionMaker
 			Recipe recipe = new Recipe();
 			recipe.inputs = new LinkedHashMap<>();
 			//recipe.inputs.put(minion.baseOutput,minion.perBaseOutput);
-			System.out.print("What is step " + (k + 1) + "'s input item");
-			String input = getOrMakeItem().product_id;
+			System.out.print("What is step " + (k + 1) + "'s input item? ");
+			String input = getOrMakeItem().name;
 			System.out.print("how many does it take:");
 			recipe.inputs.put(input,new Scanner(System.in).nextInt());
 			System.out.print("What does step " + (k + 1) + " produce?: ");
 			//Item i = getOrMakeItem();
-			recipe.outItem = getOrMakeItem().product_id;
+			recipe.outItem = getOrMakeItem().name;
 			System.out.print("How many does this step make?: ");
 			recipe.outCount = new Scanner(System.in).nextInt();
 			steps.add(recipe);
@@ -181,27 +195,44 @@ public class MinionMaker
 	
 	private static Item getOrMakeItem()
 	{
-		System.out.print("Enter item product ID: ");
-		String pid = new Scanner(System.in).nextLine();
+		System.out.print("Enter item name: ");
+		String name = new Scanner(System.in).nextLine();
 		try
 		{
-			return new Gson().fromJson(new FileReader("data/items/" + pid + ".json"),Item.class);
+			return new Gson().fromJson(new FileReader("data/items/" + name + ".json"),Item.class);
 		}catch (IOException ex) {
 			//System.out.println("error 75");
 			//ex.printStackTrace();
 		}
 		
 		Item bItem = new Item();
-		bItem.name = pid;
-		bItem.product_id = pid;
-		System.out.print("Merchant Sell Price of " + bItem.name + ": ");
+		bItem.name = name;
+		System.out.print("Merchant Sell Price of " + bItem.name + " (0.0 for not sellable): ");
 		bItem.merchantSellVal = new Scanner(System.in).nextDouble();
 		System.out.print("y or n... is this a bazaar sellable: ");
 		bItem.bazaar = new Scanner(System.in).nextLine().toLowerCase().equals("y");
+		if(bItem.bazaar)
+		{
+			String maybePID = name.toUpperCase().replaceAll(" ","_");
+			System.out.print("is the product ID " + maybePID + "?: ");
+			if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
+			{
+				bItem.product_id = maybePID;
+			}
+			else
+			{
+				System.out.print("what is the product ID : ");
+				bItem.product_id = new Scanner(System.in).nextLine();
+			}
+		}
+		else
+		{
+			bItem.product_id = "null";
+		}
 		
 		try
 		{
-			Writer writer = new FileWriter("data/items/" + bItem.product_id + ".json");
+			Writer writer = new FileWriter("data/items/" + bItem.name + ".json");
 			new Gson().toJson(bItem,writer);
 			writer.close();
 			System.out.println("saved");
