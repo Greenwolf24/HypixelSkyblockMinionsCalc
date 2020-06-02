@@ -6,11 +6,9 @@ This is only going to be a way to make the json minions in an easier way
  */
 
 import com.google.gson.Gson;
+import sun.awt.image.ImageWatched;
 
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Scanner;
@@ -22,18 +20,17 @@ public class MinionMaker
 		Minion minion = new Minion();
 		System.out.print("what is the name of the minion (____ Minion): ");
 		minion.name = new Scanner(System.in).nextLine();
-		System.out.print("how many base items does this minion produce: ");
-		minion.baseOutput = new ArrayList<>();
-		int minionItemOutCount = new Scanner(System.in).nextInt();
-		for(int k = 0;k < minionItemOutCount;k++)
+		minion.baseOutputs = new LinkedHashMap<>();
+		System.out.print("how many items does this minion make: ");
+		for (int k = 0; k < new Scanner(System.in).nextInt(); k++)
 		{
-			minion.baseOutput.add(getOrMakeItem().name);
+			
+			System.out.println("What is this minion's base item?");
+			//Item baseItem = getOrMakeItem();
+			String name = getOrMakeItem().name;
+			System.out.print("how many items per break (or decimal for rate of drop): ");
+			minion.baseOutputs.put(name,new Scanner(System.in).nextDouble());
 		}
-		//System.out.println("What is this minion's base item?");
-		//Item baseItem = getOrMakeItem();
-		//minion.baseOutput = getOrMakeItem().product_id;
-		System.out.print("how many items per break: ");
-		minion.perBaseOutput = new Scanner(System.in).nextInt();
 		minion.levels = new MinionLevel[11];
 		System.out.print("Does this minion use the typical storage level amounts?: ");
 		if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
@@ -122,12 +119,12 @@ public class MinionMaker
 			}
 		}
 		
-		System.out.print("can COMPACTER_SC3000 be used with this minion?: ");
+		System.out.print("can COMPACTER_SC3000 be used with this minion");
 		if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
 		{
 			System.out.print("How many steps are involved?");
 			int s = new Scanner(System.in).nextInt();
-			System.out.println("please create the recipe steps for COMPACTER_SC3000. ");
+			System.out.println("please create the recipe steps for COMPACTER_SC3000");
 			minion.modOutputSteps.put("COMPACTER_SC3000",makeSteps(s));
 		}
 		
@@ -157,24 +154,12 @@ public class MinionMaker
 		 */
 	}
 	
-	private static ArrayList<Recipe> makeSteps(int num)
+	private static ArrayList<String> makeSteps(int num)
 	{
-		ArrayList<Recipe> steps = new ArrayList<>();
+		ArrayList<String> steps = new ArrayList<>();
 		for(int k = 0;k < num;k++)
 		{
-			Recipe recipe = new Recipe();
-			recipe.inputs = new LinkedHashMap<>();
-			//recipe.inputs.put(minion.baseOutput,minion.perBaseOutput);
-			System.out.print("What is step " + (k + 1) + "'s input item? ");
-			String input = getOrMakeItem().name;
-			System.out.print("how many does it take:");
-			recipe.inputs.put(input,new Scanner(System.in).nextInt());
-			System.out.print("What does step " + (k + 1) + " produce?: ");
-			//Item i = getOrMakeItem();
-			recipe.outItem = getOrMakeItem().name;
-			System.out.print("How many does this step make?: ");
-			recipe.outCount = new Scanner(System.in).nextInt();
-			steps.add(recipe);
+			steps.add(getOrMakeRecipeName());
 		}
 		return steps;
 	}
@@ -191,6 +176,92 @@ public class MinionMaker
 			System.out.println("error 98");
 			ex.printStackTrace();
 		}
+	}
+	
+	private static String getOrMakeRecipeName()
+	{
+		System.out.print("What is the recipe output item");
+		String outItem = getOrMakeItem().name;
+		System.out.print("how many does this recipe make");
+		int outAmount = new Scanner(System.in).nextInt();
+		String fileBase = outItem + "x" + outAmount;
+		int fileBaseNum = 0;
+		try
+		{
+			File fold = new File("data/recipes/");
+			String[] files = fold.list();
+			ArrayList<String> matches = new ArrayList<>();
+			for(String file : files)
+			{
+				//checks if the file is a . file after the recipe number.
+				// Ex mushroomblock001.json wont be found with mushroom001.json
+				if(file.indexOf(fileBase) == 0 && file.substring(fileBase.length() + 3,fileBase.length() + 4).equals("."))
+				{
+					 matches.add(file);
+				}
+			}
+			fileBaseNum = matches.size() + 1;
+			for(String file : matches)
+			{
+				try
+				{
+					Recipe temp = new Gson().fromJson(new FileReader("data/recipes/" + file + ".json"), Recipe.class);
+					System.out.println("are the inputs " + temp.inputs);
+					if(new Scanner(System.in).nextLine().toLowerCase().equals("y"))
+					{
+						return file;
+					}
+				}catch (FileNotFoundException ex){}
+			}
+		}catch (NullPointerException ex) {}
+		
+		Recipe recipe = new Recipe();
+		recipe.inputs = new LinkedHashMap<>();
+		//recipe.inputs.put(minion.baseOutput,minion.perBaseOutput);
+		System.out.print("how many different inputs: ");
+		for(int k = 0;k < new Scanner(System.in).nextInt();k++)
+		{
+			System.out.print("What is input item");
+			String input = getOrMakeItem().name;
+			System.out.print("how many " + input + " does it take:");
+			recipe.inputs.put(input, new Scanner(System.in).nextInt());
+		}
+		recipe.outItem = outItem;
+		recipe.outCount = outAmount;
+		String finalSaveName = outItem + "x" + outAmount + formatRecNum(fileBaseNum);
+		try
+		{
+			
+			Writer writer = new FileWriter("data/recipe/" + finalSaveName + ".json");
+			new Gson().toJson(recipe,writer);
+			writer.close();
+			System.out.println("saved");
+		}
+		catch (IOException ex){}
+		return finalSaveName;
+	}
+	
+	private static Recipe recipeNameToRecipe(String name)
+	{
+		try
+		{
+			return new Gson().fromJson(new FileReader("data/recipes/" + name + ".json"),Recipe.class);
+		}catch (Exception ex)
+		{
+			System.err.println("An error occured while fetching that file. Rerouting you to the getOrMakeRecipeName now");
+			return recipeNameToRecipe(getOrMakeRecipeName());
+		}
+	}
+	
+	private static String formatRecNum(int i)
+	{
+		String s = Integer.toString(i);
+		int sl = s.length();
+		for(int k = 0;k < 3 - sl;k++)
+		{
+			s = "0" + s;
+		}
+		return s;
 	}
 	
 	private static Item getOrMakeItem()

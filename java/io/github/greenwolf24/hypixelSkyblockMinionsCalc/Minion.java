@@ -6,8 +6,7 @@ import java.util.LinkedHashMap;
 public class Minion
 {
 	public String name;
-	public ArrayList<String> baseOutput;
-	public int perBaseOutput;
+	public LinkedHashMap<String,Double> baseOutputs;
 	public MinionLevel[] levels;
-	public LinkedHashMap<String,ArrayList<Recipe>> modOutputSteps;
+	public LinkedHashMap<String,ArrayList<String>> modOutputSteps;
 }
